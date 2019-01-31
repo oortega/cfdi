@@ -16,7 +16,7 @@ from requests.exceptions import ConnectionError
 
 
 TIMEOUT = 10
-DEBUG_SOAP = True
+DEBUG_SOAP = False
 
 FINKOK = {
     'AUTH': {

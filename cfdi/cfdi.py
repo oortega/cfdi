@@ -346,16 +346,17 @@ class CfdiStamp(object):
         self.element_root_xml = None#Elemento Comprobante del xml
     
     def _to_xml(self, xml_obj):
-        xml_string = ET.tostring(self.xml_obj,
+        xml_string = ET.tostring(xml_obj,
             pretty_print=True, xml_declaration=True, encoding='utf-8')
-        xml_string = self.xml_sellado.decode('utf-8')
 
+        xml_string =xml_string.decode('utf-8')
         return xml_string
 
     def _parse(self, xml_string):
         #utf8_parser = ET.XMLParser(encoding='utf-8')
-        xml_parsed =  ET.fromstring(xml_string)
-        return xml_parsed
+        xml_parsed =  ET.fromstring(xml_string.encode('utf-8'))
+
+        return xml_parsed #<type 'lxml.etree._Element'>
  
 
     def _get_cadena(self, xml):
@@ -363,15 +364,13 @@ class CfdiStamp(object):
         #Obtenemos cadena original
         xsl_root = ET.parse(self.XSLT_PATH)
         xsl_transform = ET.XSLT(xsl_root)
-        cadena_original = xsl_transform(xml)
+        cadena_original = str( xsl_transform(xml) )
         return cadena_original
 
     def get_sello(self):
         #Leemos el xml que nos enviaron
         
         self.xml_parsed = self._parse(self.cfdi_xml_string)
-        self.element_root_xml = self.xml_parsed.getroot()
-
 
         #Obtenemos la cadena original
         cadena_original = self._get_cadena(self.xml_parsed)
@@ -380,10 +379,10 @@ class CfdiStamp(object):
         sello = self.claves_sat.sign(cadena_original)
 
         #agregamos el sello al Elemento Comprobante
-        self.element_root_xml.attrib['Sello'] = sello
+        self.xml_parsed.attrib['Sello'] = sello
  
         #Convertimos a cadena 
-        self.xml_sellado = self._to_xml(self.element_root_xml)
+        self.xml_sellado = self._to_xml(self.xml_parsed)
 
         return self.xml_sellado
         
