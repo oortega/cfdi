@@ -11,8 +11,6 @@ PATH = os.path.abspath(os.path.dirname(__file__))
 key_path = os.path.join("cfdi/certificados","cert_test.key")
 cer_path = os.path.join("cfdi/certificados","cert_test.cer")
 pem_enc_path = os.path.join("cfdi/certificados","cert_test.pem.enc")
-path_xlst = os.path.join("cfdi/xslt","cadena_3.3_1.2.xslt")
-
 password = "12345678a"
 
  
@@ -34,9 +32,7 @@ else:
 
 '''
 
-cd /var/waps/cfdi
-python validar_cer.py
-
+ 
 
 '''
 

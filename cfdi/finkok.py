@@ -79,7 +79,7 @@ class PACFinkok(object):
         if result.Incidencias:
             fault = result.Incidencias.Incidencia[0]
             cod_error = fault.CodigoError
-            msg_error = fault.MensajeIncidencia
+            msg_error = fault.MensajeIncidencia.encode('utf-8')
             error = 'Error: {}\n{}'.format(cod_error, msg_error)
             self.error = self.CODE.get(cod_error, error)
         return {}
