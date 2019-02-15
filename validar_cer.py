@@ -18,9 +18,9 @@ cer = utils._read_file(cer_path)
 key = utils._read_file(key_path)
 
 claves_sat = SATFiles(cer, key, password)
-
+claves_sat.validate_cer()
 print str(claves_sat)
-
+print "RFC {}".format(claves_sat._rfc)
 if claves_sat.is_valid:
     with open(pem_enc_path, 'wb') as f:
         f.write(claves_sat.key_pem)

@@ -34,7 +34,9 @@ xml_string = cfdi.get_xml()
 #obtenemos el PEM e info del certificado
 cer = utils._read_file(cer_path)
 pem_enc = utils._read_file(pem_enc_path)
-claves_sat = SATFiles(cer=cer, key=pem_enc, password='')
+values_timbrar = {"rfc":"LAN7008173R5" , "serial_number": "20001000000300022815"}
+claves_sat = SATFiles(cer=cer, key=pem_enc, password='', values_timbrar=values_timbrar)
+
 #mandamos a sellar
 cfdistamp = CfdiStamp(xml_string, claves_sat)
 xml_sellado = cfdistamp.get_sello() 

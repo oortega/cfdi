@@ -163,14 +163,23 @@ class SATcfdi(object):
 
 class SATFiles(object):
     TOKEN = 'c4de672a306cae37117bbba0cf7724a9cdd9c94b31c74272ae'
-    def __init__(self, cer, key=b'', password='', token=TOKEN):
+    def __init__(self, cer, key=b'', password='',  token=TOKEN, values_timbrar = {},):
         self._error = ''
         self._token = token
+        self._cer = cer
+        self._key = key
+        self._password = password
+        self.values_timbrar = values_timbrar
         self._init_values()
         #Obtenemos serie, vigencia, cert en base64, si es fiel entre otros
-        self._get_data_cer(cer)
+        #self._get_data_cer(cer)
         #solo se ejecuta si hay key y password. Solo se va a ejecutar cuando se validan datos y en ese momento generamos el PEM Enc.
-        self._get_data_key(key, password)
+        #self._get_data_key(key, password)
+
+    def validate_cer(self):
+        self._get_data_cer(self._cer)
+        self._get_data_key(self._key, self._password)
+
 
     def _init_values(self):
         self._rfc = ''
@@ -184,6 +193,11 @@ class SATFiles(object):
         self._key_pem = b''
         self._cer_modulus = 0
         self._key_modulus = 0
+        
+        if self.values_timbrar:
+            self._rfc = self.values_timbrar.get("rfc")
+            self._serial_number = self.values_timbrar.get("serial_number")
+
         return
 
     def __str__(self):
@@ -201,11 +215,15 @@ class SATFiles(object):
         #Genera una contraseña apartir del RFC y numero de serie.
         #para que sirve TOKEN? R= Agregarle un numero aleatorio para la contraseña
         digest = hashes.Hash(hashes.SHA512(), default_backend())
-
+        #print digest
+        #print type(digest)
         digest.update(self._rfc.encode())
+        #print digest
         digest.update(self._serial_number.encode())
         digest.update(self._token.encode())
-
+        print self._rfc
+        print self._serial_number
+        print self._token
         return digest.finalize()
 
     def _get_data_cer(self, cer):
@@ -281,7 +299,7 @@ class SATFiles(object):
 
     def sign(self, data, password=''):
         #firmamos la cadena que nos envio CfdiStamp.get_sello, no le mandamos pass porque internamente esta encriptado. Se va descenriptar en ._get_key
-
+        self._get_data_key(self._key, self._password)
         #obtenemos el pem enc
         private_key = self._get_key(password)
         firma = private_key.sign(data, padding.PKCS1v15(), hashes.SHA256())
