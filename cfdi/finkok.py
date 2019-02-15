@@ -18,17 +18,6 @@ from requests.exceptions import ConnectionError
 TIMEOUT = 10
 DEBUG_SOAP = False
 
-FINKOK = {
-    'AUTH': {
-        'USER': 'pedro',
-        'PASS': '08ab5d7ba6c320987f10663806632bac31026e827d24aa3a175f372af7ab',
-    },
-    'RESELLER': {
-        'USER': '',
-        'PASS': ''
-    },
-    'WS': 'http://demo-facturacion.finkok.com/servicios/soap/{}.wsdl',
-}
 
 
 
@@ -50,6 +39,19 @@ class DebugPlugin(Plugin):
 
 
 class PACFinkok(object):
+    FINKOK = {
+        'AUTH': {
+            'USER': 'pedro',
+            'PASS': '08ab5d7ba6c320987f10663806632bac31026e827d24aa3a175f372af7ab',
+        },
+        'RESELLER': {
+            'USER': 'pedro',
+            'PASS': '08ab5d7ba6c320987f10663806632bac31026e827d24aa3a175f372af7ab'
+        },
+        'WS': 'http://demo-facturacion.finkok.com/servicios/soap/{}.wsdl',
+    }
+
+
     URL = {
         'quick_stamp': False,
         'timbra': FINKOK['WS'].format('stamp'),
@@ -64,7 +66,18 @@ class PACFinkok(object):
         '702': 'No se encontro el RFC del emisor',
     }
 
-    def __init__(self):
+    def __init__(self, finkok_auth={}):
+
+        if finkok_auth:
+            self.FINKOK = finkok_auth
+            self.URL = {
+                'quick_stamp': False,
+                'timbra': self.FINKOK['WS'].format('stamp'),
+                'cancel': self.FINKOK['WS'].format('cancel'),
+                'client': self.FINKOK['WS'].format('registration'),
+                'util': self.FINKOK['WS'].format('utilities'),
+            }
+
         self.error = ''
         self._transport = Transport(cache=SqliteCache(), timeout=TIMEOUT)
         self._plugins = [DebugPlugin()]
@@ -106,7 +119,7 @@ class PACFinkok(object):
 
     def cfdi_stamp(self, cfdi, auth={}):
         if not auth:
-            auth = FINKOK['AUTH']
+            auth = self.FINKOK['AUTH']
 
         method = 'timbra'
         client = Client(
@@ -130,7 +143,7 @@ class PACFinkok(object):
 
     # ToDo
 
-    def client_add(self, rfc, type_user=False):
+    def client_add(self, rfc, type_user=False,):
         """Agrega un nuevo cliente para timbrado.
         Se requiere cuenta de reseller para usar este método
 
@@ -149,9 +162,11 @@ class PACFinkok(object):
                     'Account Already exists'
                 'success': True or False
         """
-        auth = FINKOK['RESELLER']
-        tu = {True: 'O', False: 'P'}
+        
+        auth = self.FINKOK['RESELLER']
 
+        tu = {True: 'O', False: 'P'}
+        print auth
         method = 'client'
         client = Client(
             self.URL[method], transport=self._transport, plugins=self._plugins)
@@ -208,7 +223,7 @@ class PACFinkok(object):
                 'token': 'Token de timbrado',
                 'message': None
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         method = 'util'
         client = Client(
@@ -257,7 +272,7 @@ class PACFinkok(object):
                     'Success, added {credit} of credit to {RFC}.'
                     'RFC no encontrado'
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         if not isinstance(credit, int):
             self.error = 'El credito debe ser un entero'
@@ -307,7 +322,7 @@ class PACFinkok(object):
                     'Account Already exists'
                 'success': True or False
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         method = 'client'
         client = Client(
@@ -359,7 +374,7 @@ class PACFinkok(object):
                     ]
                 } or None si no existe
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         method = 'client'
         client = Client(
@@ -411,7 +426,7 @@ class PACFinkok(object):
         """
 
         if not auth:
-            auth = FINKOK['RESELLER']
+            auth = self.FINKOK['RESELLER']
 
         method = 'client'
         client = Client(
@@ -444,7 +459,7 @@ class PACFinkok(object):
     def get_server_datetime(self):
         """Regresa la fecha y hora del servidor de timbrado del PAC
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         method = 'util'
         client = Client(
@@ -473,7 +488,7 @@ class PACFinkok(object):
     def get_report_credit(self, rfc):
         """Obtiene un reporte de los timbres agregados
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         args = {
             'username': auth['USER'],
@@ -506,7 +521,7 @@ class PACFinkok(object):
     def get_report_total(self, rfc, date_from, date_to, invoice_type='I'):
         """Obtiene un reporte del total de facturas timbradas
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         args = {
             'username': auth['USER'],
@@ -542,7 +557,7 @@ class PACFinkok(object):
     def get_report_uuid(self, rfc, date_from, date_to, invoice_type='I'):
         """Obtiene un reporte de los CFDI timbrados
         """
-        auth = FINKOK['RESELLER']
+        auth = self.FINKOK['RESELLER']
 
         args = {
             'username': auth['USER'],
@@ -583,7 +598,7 @@ class PACFinkok(object):
 
     def cfdi_get_by_xml(self, xml, auth):
         if not auth:
-            auth = FINKOK['AUTH']
+            auth = self.FINKOK['AUTH']
 
         method = 'timbra'
         client = Client(
@@ -615,7 +630,7 @@ class PACFinkok(object):
 
     def cfdi_get_by_uuid(self, uuid, rfc, invoice_type='I', auth={}):
         if not auth:
-            auth = FINKOK['AUTH']
+            auth = self.FINKOK['AUTH']
 
         method = 'util'
         client = Client(
@@ -649,7 +664,7 @@ class PACFinkok(object):
 
     def cfdi_status(self, uuid, auth={}):
         if not auth:
-            auth = FINKOK['AUTH']
+            auth = self.FINKOK['AUTH']
 
         method = 'timbra'
         client = Client(
