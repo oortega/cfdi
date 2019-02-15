@@ -2,7 +2,7 @@
 
 Generar xml, sellar y timbrar. Para timbrar la factura usamos Finkok
 
-#Se genera el sello usando M2Crypto
+#Se genera el sello usando cryptography y lxml
 
 #antes de instalar los requirements instalar esto:
 sudo apt-get install python-dev  \
