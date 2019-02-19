@@ -180,8 +180,9 @@ class SATFiles(object):
         self._is_fiel = False
         self._are_couple = False
         self._is_valid_time = False
+        self._cer_pem = ''
         self._cer_txt = ''
-        self._key_pem = b''
+        self._key_enc = b''#pem+password interno
         self._cer_modulus = 0
         self._key_modulus = 0
         return
@@ -201,7 +202,6 @@ class SATFiles(object):
         #Genera una contraseña apartir del RFC y numero de serie.
         #para que sirve TOKEN? R= Agregarle un numero aleatorio para la contraseña
         digest = hashes.Hash(hashes.SHA512(), default_backend())
-
         digest.update(self._rfc.encode())
         digest.update(self._serial_number.encode())
         digest.update(self._token.encode())
@@ -225,9 +225,8 @@ class SATFiles(object):
 
         self._is_fiel = obj.extensions.get_extension_for_oid(
             ExtensionOID.KEY_USAGE).value.key_agreement
-
-        self._cer_txt = ''.join(obj.public_bytes(
-            serialization.Encoding.PEM).decode().split('\n')[1:-2])
+        self._cer_pem = obj.public_bytes(serialization.Encoding.PEM).decode()
+        self._cer_txt = ''.join(self._cer_pem.split('\n')[1:-2])
 
         self._cer_modulus = obj.public_key().public_numbers().n
         return
@@ -238,7 +237,7 @@ class SATFiles(object):
             si hay password generamos el pem enc y revisamos si son pareja
         '''
         #agregamos el key o pem enc segun la forma en que se llamo.
-        self._key_pem = key
+        self._key_enc = key
 
         #solo entra cuando se crear el PEM Enc Es decir cuando validamos todos los datos
         if not key or not password:
@@ -257,7 +256,7 @@ class SATFiles(object):
         #Tal vez aqui se esta generando el pem encriptado? pero donde se guarda? R=, se guarda donde utils.validate_cert 
         #generamos PEM
         p = self._get_hash()
-        self._key_pem = obj.private_bytes(
+        self._key_enc = obj.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.BestAvailableEncryption(p)
@@ -276,8 +275,17 @@ class SATFiles(object):
         if not password:
             password = self._get_hash()
         private_key = serialization.load_pem_private_key(
-            self._key_pem, password=password, backend=default_backend())
+            self._key_enc, password=password, backend=default_backend())
         return private_key
+
+    def _get_key_pem(self):
+        obj = self._get_key('')
+        key_pem = obj.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        return key_pem
 
     def sign(self, data, password=''):
         #firmamos la cadena que nos envio CfdiStamp.get_sello, no le mandamos pass porque internamente esta encriptado. Se va descenriptar en ._get_key
@@ -318,6 +326,10 @@ class SATFiles(object):
     @property
     def is_valid_time(self):
         return self._is_valid_time
+    
+    @property
+    def cer_pem(self):
+        return self._cer_pem.encode()
 
     @property
     def cer_txt(self):
@@ -325,7 +337,11 @@ class SATFiles(object):
 
     @property
     def key_pem(self):
-        return self._key_pem
+        return self._get_key_pem()
+
+    @property
+    def key_enc(self):
+        return self._key_enc        
 
     @property
     def error(self):

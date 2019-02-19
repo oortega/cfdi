@@ -64,6 +64,10 @@ class PACFinkok(object):
         '205': 'No Encontrado',
         '307': 'Comprobante timbrado previamente',
         '702': 'No se encontro el RFC del emisor',
+        'IP': 'Invalid Passphrase',
+        'IPMSG': 'Frase de paso inválida',
+        'NE': 'No Encontrado',
+
     }
 
     def __init__(self, finkok_auth={}):
@@ -83,19 +87,33 @@ class PACFinkok(object):
         self._plugins = [DebugPlugin()]
 
     def _validate_result(self, result):
-        ce = result.CodEstatus
-        if ce:
+        if hasattr(result, 'CodEstatus'):
+            ce = result.CodEstatus
+            if ce is None:
+                return result
+
+            if ce == self.CODE['IP']:
+                self.error = self.CODE['IPMSG']
+                return {}
+
+            if self.CODE['NE'] in ce:
+                self.error = 'UUID ' + self.CODE['NE']
+                return {}
+
             if self.CODE['200'] != ce:
-                print('CodEstatus\n', type(ce), ce)
+                print('CodEstatus', type(ce), ce)
             return result
 
-        if result.Incidencias:
+        if hasattr(result, 'Incidencias'):
             fault = result.Incidencias.Incidencia[0]
-            cod_error = fault.CodigoError
+            cod_error = fault.CodigoError.encode('utf-8')
             msg_error = fault.MensajeIncidencia.encode('utf-8')
             error = 'Error: {}\n{}'.format(cod_error, msg_error)
             self.error = self.CODE.get(cod_error, error)
-        return {}
+            return {}
+
+        return result
+
 
     def _get_result(self, client, method, args):
         self.error = ''
@@ -166,7 +184,6 @@ class PACFinkok(object):
         auth = self.FINKOK['RESELLER']
 
         tu = {True: 'O', False: 'P'}
-        print auth
         method = 'client'
         client = Client(
             self.URL[method], transport=self._transport, plugins=self._plugins)
@@ -661,10 +678,43 @@ class PACFinkok(object):
         error = 'Error: {}\n{}'.format(code_error, msg_error)
         self.error = self.CODE.get(code_error, error)
         return {}
+    
+    def cfdi_cancel(self, rfc, uuid, cer, key, auth={}):
+        if not auth:
+            auth = self.FINKOK['AUTH']
+
+        method = 'cancel'
+        client = Client(
+            self.URL[method], transport=self._transport, plugins=self._plugins)
+        uuid_type = client.get_type('ns1:UUIDS')
+        sa = client.get_type('ns0:stringArray')
+
+        args = {
+            'UUIDS': uuid_type(uuids=sa(string=uuid)),
+            'username': auth['USER'],
+            'password': auth['PASS'],
+            'taxpayer_id': rfc,
+            'cer': cer,
+            'key': key,
+            'store_pending': False,
+        }
+
+        result = self._get_result(client, 'cancel', args)
+        #if self.error:
+        #    return {}
+
+        # data = {
+        #     'Fecha': result['Fecha'],
+        #     'EstatusUUID': result['Folios']['Folio'][0]['EstatusUUID'],
+        #     'EstatusCancelacion': result['Folios']['Folio'][0]['EstatusCancelacion'],
+        # }
+
+        return result
+
 
     def cfdi_status(self, uuid, auth={}):
         if not auth:
-            auth = self.FINKOK['AUTH']
+            auth = FINKOK['AUTH']
 
         method = 'timbra'
         client = Client(
@@ -675,27 +725,20 @@ class PACFinkok(object):
             'uuid': uuid,
         }
 
-        try:
-            result = client.service.query_pending(**args)
-        except Fault as e:
-            self.error = str(e)
-            return {}
-        except TransportError as e:
-            self.error = str(e)
-            return {}
-        except ConnectionError as e:
-            msg = '502 - Error de conexión'
-            self.error = msg
+        result = self._get_result(client, 'query_pending', args)
+        if self.error:
             return {}
 
         STATUS = {
+            'C': 'Cancelado',
             'S': 'Timbrado, aún no eviado al SAT',
             'F': 'Timbrado y enviado al SAT',
         }
 
         data = {
-            'status': STATUS[result.status],
+            'estatus': STATUS[result.status],
             'xml': self._to_string(unescape(result.xml)),
+            'fecha': result.date,
         }
 
         return data

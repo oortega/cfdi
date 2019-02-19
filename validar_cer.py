@@ -23,7 +23,7 @@ print str(claves_sat)
 
 if claves_sat.is_valid:
     with open(pem_enc_path, 'wb') as f:
-        f.write(claves_sat.key_pem)
+        f.write(claves_sat.key_enc)
     msg = 'Los certificados son válidos\n'
     print msg
 else:
