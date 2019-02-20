@@ -47,6 +47,8 @@ result = timbrar.cfdi_stamp(xml_sellado)
 if result:
     print result["xml"]
 else:
+ 
     print timbrar.error
+
 
 
