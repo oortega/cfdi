@@ -88,32 +88,33 @@ class PACFinkok(object):
 
     def _validate_result(self, result):
         
-        if result.CodEstatus:
-            
-            ce = result.CodEstatus
-            if ce is None:
+        if hasattr(result, 'CodEstatus'):
+            if result.CodEstatus:
+                
+                ce = result.CodEstatus
+                if ce is None:
+                    return result
+
+                if ce == self.CODE['IP']:
+                    self.error = self.CODE['IPMSG']
+                    return {}
+
+                if self.CODE['NE'] in ce:
+                    self.error = 'UUID ' + self.CODE['NE']
+                    return {}
+
+                if self.CODE['200'] != ce:
+                    print('CodEstatus', type(ce), ce)
                 return result
-
-            if ce == self.CODE['IP']:
-                self.error = self.CODE['IPMSG']
+        if hasattr(result, 'Incidencias'):
+            if result.Incidencias:
+                
+                fault = result.Incidencias.Incidencia[0]
+                cod_error = fault.CodigoError.encode('utf-8')
+                msg_error = fault.MensajeIncidencia.encode('utf-8')
+                error = 'Error: {}. {}'.format(cod_error, msg_error)
+                self.error = self.CODE.get(cod_error, error)
                 return {}
-
-            if self.CODE['NE'] in ce:
-                self.error = 'UUID ' + self.CODE['NE']
-                return {}
-
-            if self.CODE['200'] != ce:
-                print('CodEstatus', type(ce), ce)
-            return result
-
-        if result.Incidencias:
-            
-            fault = result.Incidencias.Incidencia[0]
-            cod_error = fault.CodigoError.encode('utf-8')
-            msg_error = fault.MensajeIncidencia.encode('utf-8')
-            error = 'Error: {}. {}'.format(cod_error, msg_error)
-            self.error = self.CODE.get(cod_error, error)
-            return {}
 
         return result
 
