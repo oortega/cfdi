@@ -1,6 +1,6 @@
 # CFDI
 
-Generar xml, sellar y timbrar. Para timbrar la factura usamos Finkok
+Generar xml, sellar y timbrar. Para timbrar la factura usamos Finkok. Gracias al proyecto y ayuda de https://gitlab.com/mauriciobaeza/text2cfdi
 
 Se genera el sello usando cryptography y lxml
 
@@ -24,5 +24,5 @@ pip uninstall zeep
 pip install zeep
 
 ### Formas timbrar
-python generar_xml.py #timbra usando la clase Finkok
-python generar_xml2.py #Timbra usando un ejemplo proporcionado por finkok
+python generar_xml.py #timbra usando la clase Finkok <br>
+python generar_xml2.py #Timbra usando un ejemplo proporcionado por finkok </br>
