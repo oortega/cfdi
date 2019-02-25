@@ -684,6 +684,14 @@ class PACFinkok(object):
         return {}
     
     def cfdi_cancel(self, rfc, uuid, cer, key, auth={}):
+        uuid_status_message = {
+            "201": "Petición de cancelación realizada exitosamente",
+            "202": "Petición de cancelación realizada Previamente",
+            "203": "No corresponde el RFC del Emisor y de quien solicita la cancelación",
+            "205": "UUID No encontrado",
+            "no_cancelable": "El UUID contiene CFDI relacionados",
+
+        }
         if not auth:
             auth = self.FINKOK['AUTH']
 
@@ -706,7 +714,7 @@ class PACFinkok(object):
         result = self._get_result(client, 'cancel', args)
         if self.error:
            return {}
-        
+         
         data = {
             'Fecha': result['Fecha'],
             'EstatusUUID': "",
@@ -715,9 +723,14 @@ class PACFinkok(object):
             'CodEstatus': result['CodEstatus']
         }
         if result['Folios']:
-            data['EstatusUUID'] = result['Folios']['Folio'][0]['EstatusUUID'],
-            data['EstatusCancelacion'] = result['Folios']['Folio'][0]['EstatusCancelacion'],
-
+            
+            data['EstatusUUID'] = result['Folios']['Folio'][0]['EstatusUUID']
+            estatus_cancelacion = result['Folios']['Folio'][0]['EstatusCancelacion']
+             
+            if not estatus_cancelacion:
+               estatus_cancelacion = uuid_status_message.get(data['EstatusUUID']) 
+            data['EstatusCancelacion'] = estatus_cancelacion
+            
         return data
 
     def get_code_cfdi_cancel(folio):
