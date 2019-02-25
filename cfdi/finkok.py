@@ -704,17 +704,33 @@ class PACFinkok(object):
         }
 
         result = self._get_result(client, 'cancel', args)
-        #if self.error:
-        #    return {}
+        if self.error:
+           return {}
+        
+        data = {
+            'Fecha': result['Fecha'],
+            'EstatusUUID': "",
+            'EstatusCancelacion': "",
+            'Acuse': result['Acuse'],
+            'CodEstatus': result['CodEstatus']
+        }
+        if result['Folios']:
+            data['EstatusUUID'] = result['Folios']['Folio'][0]['EstatusUUID'],
+            data['EstatusCancelacion'] = result['Folios']['Folio'][0]['EstatusCancelacion'],
 
-        # data = {
-        #     'Fecha': result['Fecha'],
-        #     'EstatusUUID': result['Folios']['Folio'][0]['EstatusUUID'],
-        #     'EstatusCancelacion': result['Folios']['Folio'][0]['EstatusCancelacion'],
-        # }
+        return data
 
-        return result
+    def get_code_cfdi_cancel(folio):
+        code_status_message = {
+            '201': "Petición de cancelación realizada exitosamente",
+            '202': "Petición de cancelación realizada Previamente",
+            '203': "No corresponde el RFC del Emisor y de quien solicita la cancelación",
+            '205': "UUID No encontrado"
+        }
 
+        code_status = folio.get('EstatusUUID')
+        message = code_status_message.get(code_status, "Error al cancelar.")
+        return message
 
     def cfdi_status(self, uuid, auth={}):
         if not auth:

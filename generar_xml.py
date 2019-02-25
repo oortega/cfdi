@@ -21,7 +21,7 @@ path_xlst = os.path.join("cfdi/xslt","cadena_3.3_1.2.xslt")
 
 ###-Generamos un Dic
 #Debemos tener guardado noCertificado, certificado en base 64 en el json
-with open('cfdi_minimo.json') as f:
+with open('cfdi_varios_articulos.json') as f:
     datos = json.load(f)
 
 ###-Generar xml
