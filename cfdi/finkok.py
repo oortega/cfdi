@@ -8,7 +8,7 @@ from xml.sax.saxutils import unescape
 import lxml.etree as ET
 from zeep import Client
 from zeep.plugins import Plugin
-from zeep.cache import SqliteCache
+from zeep.cache import SqliteCache, InMemoryCache 
 from zeep.transports import Transport
 from zeep.exceptions import Fault, TransportError
 from requests.exceptions import ConnectionError
@@ -83,7 +83,7 @@ class PACFinkok(object):
             }
 
         self.error = ''
-        self._transport = Transport(cache=SqliteCache(), timeout=TIMEOUT)
+        self._transport = Transport(cache=InMemoryCache(), timeout=TIMEOUT)
         self._plugins = [DebugPlugin()]
 
     def _validate_result(self, result):
