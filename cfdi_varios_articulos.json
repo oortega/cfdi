@@ -5,12 +5,15 @@
         "TipoCambio": "1",
         "Moneda": "MXN",
         "TipoDeComprobante": "I",
+        "FormaPago": "01",
+        "MetodoPago": "PUE",
         "LugarExpedicion": "06850",
         "SubTotal": "2000.00",
         "Total": "2320.00"
     },
     "emisor": {
         "Rfc": "LAN7008173R5",
+        "Nombre": "EmpresaTest",
         "RegimenFiscal": "601"
     },
     "receptor": {

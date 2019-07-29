@@ -48,7 +48,7 @@ class PACFinkok(object):
             'USER': 'pedro',
             'PASS': '08ab5d7ba6c320987f10663806632bac31026e827d24aa3a175f372af7ab'
         },
-        'WS': 'http://demo-facturacion.finkok.com/servicios/soap/{}.wsdl',
+        'WS': 'https://demo-transicion.finkok.com/servicios/soap/{}.wsdl',
     }
 
 
