@@ -8,6 +8,7 @@ from collections import OrderedDict
 import base64
 import hashlib
 import os
+from pytz import timezone as timezone_zona_horaria
 from io import StringIO, BytesIO
 
 from cryptography.hazmat.backends import default_backend
@@ -50,7 +51,10 @@ class SATcfdi(object):
         self._data = data
 
 
-    def _now(self):
+    def _now(self, zona_horaria=None):
+        if zona_horaria:
+            return datetime.datetime.now(tz=timezone_zona_horaria(zona_horaria)).isoformat()[:19]
+
         return datetime.datetime.now().isoformat()[:19]
 
     def get_xml(self):
@@ -82,7 +86,12 @@ class SATcfdi(object):
         attrib[schema_location] = self._sat_cfdi['schema']
 
         attrib['Version'] = self._sat_cfdi['version']
-        attrib['Fecha'] = self._now()
+
+        if self._data.get('zona_horaria'):
+            attrib['Fecha'] = self._now(zona_horaria=self._data['zona_horaria'])
+        else:
+            attrib['Fecha'] = self._now()
+        
 
         self._cfdi_xml = ET.Element(node_name, attrib, nsmap=nsmap)
         '''
