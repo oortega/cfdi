@@ -1,5 +1,5 @@
 # CFDI
-
+DESCONTINUADO-LA ULTIMA VERSION ESTA EN https://github.com/desarrollo-wh/cfdi
 Generar xml, sellar y timbrar. Para timbrar la factura usamos Finkok. Gracias al proyecto y ayuda de https://gitlab.com/mauriciobaeza/text2cfdi
 
 Se genera el sello usando cryptography y lxml
